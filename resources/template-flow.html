@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>[PROJECT NAME] — Animated Workflow</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background: #020617;
+    min-height: 100vh;
+    padding: 2rem;
+    color: #e2e8f0;
+  }
+  .container { max-width: 960px; margin: 0 auto; }
+  .header { display: flex; align-items: center; gap: 12px; margin-bottom: 0.4rem; }
+  .pulse-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #34d399;
+  }
+  h1 { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; }
+  .subtitle { color: #64748b; font-size: 0.8rem; margin-bottom: 1.5rem; }
+  .diagram-card {
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    background:
+      linear-gradient(#02061700, #02061700),
+      repeating-linear-gradient(0deg, #0f1b33 0 0.5px, transparent 0.5px 40px),
+      repeating-linear-gradient(90deg, #0f1b33 0 0.5px, transparent 0.5px 40px),
+      #030a1c;
+    padding: 1.5rem 1rem;
+    position: relative;
+  }
+  .pause-btn {
+    position: absolute; top: 12px; right: 12px;
+    background: transparent; border: 1px solid #1e293b; color: #64748b;
+    border-radius: 6px; padding: 4px 10px; font: inherit; font-size: 11px;
+    cursor: pointer;
+  }
+  .pause-btn:hover { color: #e2e8f0; border-color: #334155; }
+  .footer { color: #475569; font-size: 0.7rem; margin-top: 1rem; }
+
+  .flow { stroke-dasharray: 5 5; }
+  @media (prefers-reduced-motion: no-preference) {
+    .flow { animation: dashmove 0.75s linear infinite; }
+    .pulse-dot { animation: pulse 2s ease-in-out infinite; }
+  }
+  @keyframes dashmove { to { stroke-dashoffset: -10; } }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  body.paused .flow, body.paused .pulse-dot { animation-play-state: paused; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="pulse-dot"></div>
+    <h1>[PROJECT NAME] workflow</h1>
+  </div>
+  <p class="subtitle">[One-line description of what this workflow does]</p>
+
+  <div class="diagram-card">
+    <button class="pause-btn" id="pauseBtn" aria-pressed="false">⏸ pause</button>
+
+    <svg id="flowsvg" width="100%" viewBox="0 0 800 700" role="img">
+      <title>[PROJECT NAME] animated workflow diagram</title>
+      <desc>START flows through activities, fans out to parallel branches, passes a timer, and merges into END. Dashed connectors animate in the direction of execution.</desc>
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+
+      <!-- ===== CONNECTORS (drawn first: nodes mask their ends) ===== -->
+      <g stroke="#10b981" stroke-width="1" opacity="0.85" fill="none">
+        <path class="flow" d="M400 92  V128" marker-end="url(#arrow)"/>
+        <path class="flow" d="M400 176 V204 H170 V224" marker-end="url(#arrow)"/>
+        <path class="flow" d="M400 176 V224" marker-end="url(#arrow)"/>
+        <path class="flow" d="M400 176 V204 H630 V224" marker-end="url(#arrow)"/>
+        <path class="flow" d="M400 276 V314" marker-end="url(#arrow)"/>
+        <path class="flow" d="M400 366 V404" marker-end="url(#arrow)"/>
+        <path class="flow" d="M400 452 V480 H255 V496" marker-end="url(#arrow)"/>
+        <path class="flow" d="M400 452 V480 H545 V496" marker-end="url(#arrow)"/>
+        <path class="flow" d="M255 544 V568 H400 V584" marker-end="url(#arrow)"/>
+        <path class="flow" d="M545 544 V568 H400 V584"/>
+      </g>
+
+      <!-- ===== TRAVELING DOTS (path = connector d, staggered begin) ===== -->
+      <g fill="#34d399">
+        <circle r="3.5" class="dot"><animateMotion dur="1.5s" repeatCount="indefinite" path="M400 94 L400 126"/></circle>
+        <circle r="3.5" class="dot"><animateMotion dur="2.2s" repeatCount="indefinite" path="M400 178 L400 204 L170 204 L170 222"/></circle>
+        <circle r="3.5" class="dot"><animateMotion dur="2.2s" begin="0.7s" repeatCount="indefinite" path="M400 178 L400 204 L630 204 L630 222"/></circle>
+        <circle r="3.5" class="dot"><animateMotion dur="2s" repeatCount="indefinite" path="M400 454 L400 480 L255 480 L255 494"/></circle>
+        <circle r="3.5" class="dot"><animateMotion dur="2s" begin="1s" repeatCount="indefinite" path="M545 546 L545 568 L400 568 L400 582"/></circle>
+      </g>
+
+      <!-- ===== NODES (drawn last, on top) ===== -->
+      <g font-family="JetBrains Mono, monospace" text-anchor="middle">
+        <!-- START pill -->
+        <rect x="340" y="52" width="120" height="40" rx="20" fill="rgba(52,211,153,0.06)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="400" y="77" fill="#e2e8f0" font-size="13" font-weight="600">START</text>
+
+        <!-- Activity -->
+        <rect x="335" y="132" width="130" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="400" y="159" fill="#e2e8f0" font-size="13" font-weight="500">Activity</text>
+
+        <!-- Fan-out branches -->
+        <rect x="85"  y="228" width="170" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="170" y="255" fill="#e2e8f0" font-size="13" font-weight="500">ChildWorkflow</text>
+
+        <rect x="335" y="228" width="130" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="400" y="255" fill="#e2e8f0" font-size="13" font-weight="500">Activity</text>
+
+        <rect x="545" y="228" width="170" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="630" y="255" fill="#e2e8f0" font-size="13" font-weight="500">ExternalEvent</text>
+
+        <!-- Timer -->
+        <rect x="345" y="318" width="110" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="400" y="345" fill="#e2e8f0" font-size="13" font-weight="500">Timer</text>
+
+        <!-- Activity -->
+        <rect x="335" y="408" width="130" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="400" y="435" fill="#e2e8f0" font-size="13" font-weight="500">Activity</text>
+
+        <!-- Parallel pair -->
+        <rect x="190" y="500" width="130" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="255" y="527" fill="#e2e8f0" font-size="13" font-weight="500">Activity</text>
+
+        <rect x="480" y="500" width="130" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="545" y="527" fill="#e2e8f0" font-size="13" font-weight="500">Activity</text>
+
+        <!-- END pill -->
+        <rect x="340" y="588" width="120" height="40" rx="20" fill="rgba(52,211,153,0.06)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="400" y="613" fill="#e2e8f0" font-size="13" font-weight="600">END</text>
+      </g>
+    </svg>
+  </div>
+
+  <p class="footer">[Generated metadata · date · dashmotion · flow mode]</p>
+</div>
+
+<script>
+  (function () {
+    var svg = document.getElementById('flowsvg');
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.querySelectorAll('.dot').forEach(function (d) { d.remove(); });
+      document.getElementById('pauseBtn').remove();
+      return;
+    }
+    var btn = document.getElementById('pauseBtn');
+    var paused = false;
+    btn.addEventListener('click', function () {
+      paused = !paused;
+      document.body.classList.toggle('paused', paused);
+      paused ? svg.pauseAnimations() : svg.unpauseAnimations();
+      btn.textContent = paused ? '▶ play' : '⏸ pause';
+      btn.setAttribute('aria-pressed', String(paused));
+    });
+  })();
+</script>
+</body>
+</html>
