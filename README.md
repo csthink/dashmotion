@@ -1,5 +1,7 @@
 # Dashmotion
 
+English | [简体中文](README.zh-CN.md)
+
 **Diagrams that move.** A Claude AI skill that generates animated technical diagrams as self-contained HTML/SVG files — dashed connectors stream in the direction of execution, and light dots travel through the system like requests in flight. The style you see on modern infra landing pages (Diagrid, Temporal, Inngest), generated from a plain-English description.
 
 The name is the implementation: **`stroke-dash`** offset animation + **`animateMotion`** paths. That's the whole trick — no libraries, no GIF rendering, no design tools.
