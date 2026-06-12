@@ -56,6 +56,15 @@ Claude returns a single `.html` file. Open it — it's already moving.
 
 ### Claude Code
 
+Via the [`skills`](https://github.com/vercel-labs/skills) CLI — installs from this repo and updates in place:
+
+```bash
+npx skills add csthink/dashmotion          # install (auto-detects your agent)
+npx skills update                          # later, pull the latest
+```
+
+Or download the zip from [Releases](../../releases) and unzip it yourself:
+
 ```bash
 unzip dashmotion.zip -d ~/.claude/skills/      # global
 unzip dashmotion.zip -d ./.claude/skills/      # or project-local
@@ -84,17 +93,20 @@ The skill encodes the layout arithmetic that makes generation reliable: branch-b
 ## Project layout
 
 ```
-dashmotion/
-├── SKILL.md                          # Mode routing + animation contracts + shared tokens
-├── references/
-│   ├── flow-mode.md                  # Flowchart layout arithmetic
-│   └── architecture-mode.md          # Semantic palette, boundaries, legend, request journeys
-└── resources/
-    ├── template-flow.html            # Working flow example
-    └── template-architecture.html    # Working architecture example (AWS, animated request)
+dashmotion/                               # repo root
+├── skills/dashmotion/                    # the skill — this is what installs
+│   ├── SKILL.md                          # Mode routing + animation contracts + shared tokens
+│   ├── references/
+│   │   ├── flow-mode.md                  # Flowchart layout arithmetic
+│   │   └── architecture-mode.md          # Semantic palette, boundaries, legend, request journeys
+│   └── resources/
+│       ├── template-flow.html            # Working flow example
+│       └── template-architecture.html    # Working architecture example (AWS, animated request)
+├── eval/                                 # structural-check harness + before/after evidence
+└── examples/                             # demo GIFs
 ```
 
-Both templates are complete working examples — open them in a browser right now.
+`npx skills add` and the release zip ship only `skills/dashmotion/`; `eval/` and `examples/` stay in the repo. Both templates are complete working examples — open them in a browser right now.
 
 ## Exporting to GIF / MP4
 
