@@ -56,39 +56,19 @@ Claude 会返回一个 `.html` 文件,打开即动。
 
 ### Claude Code
 
-用 [`skills`](https://github.com/vercel-labs/skills) CLI——直接从本仓安装,可原地更新:
+用 [`skills`](https://github.com/vercel-labs/skills) CLI 安装——**Claude Code 请带上 `-a claude-code`**。一条命令搞定安装、升级、或替换手动解压的旧版:它会在 `~/.claude/skills/dashmotion` 写入一个真目录(`/skills` 能正常列出),并覆盖原有内容。
 
 ```bash
-npx skills add csthink/dashmotion          # 安装(自动识别你的 agent)
-npx skills update                          # 之后拉取最新版
+npx skills add csthink/dashmotion -a claude-code   # 安装——之后重跑这条即更新
 ```
 
-或从 [Releases](../../releases) 下载 zip 自己解压:
+> 为什么要这个 flag:裸 `npx skills add csthink/dashmotion` 建的是*符号链接*而非拷贝,而 Claude Code 当前对符号链接支持很不稳——链接可能根本没建成、符号链接的 skill 不出现在 `/skills`([claude-code#14836](https://github.com/anthropics/claude-code/issues/14836))、`npx skills update` 也不会刷新它。`-a claude-code` 用普通拷贝绕开了所有这些坑。其他 agent(Cursor、Codex 等)直接读 `~/.agents/skills/`,裸命令没问题。
+
+想用 zip?同样可靠,只是手动——升级时先清空目录,避免旧文件残留:
 
 ```bash
-unzip dashmotion.zip -d ~/.claude/skills/      # 全局安装
-unzip dashmotion.zip -d ./.claude/skills/      # 或项目级安装
-```
-
-### 之前手动解压装过?干净迁移一下
-
-`npx skills add` 会安装到 `~/.claude/skills/dashmotion`——但**不会覆盖你手动解压在那里的目录**。它会静默跳过、照样打印 "Done",于是 Claude Code 一直停在旧版。所以如果你之前是手动装的,先删掉它:
-
-```bash
-rm -rf ~/.claude/skills/dashmotion        # 删掉旧的手动安装
-npx skills add csthink/dashmotion          # 现在能装上最新版
-```
-
-新 session 里还是搜不到?之前失败过的运行可能把 Claude Code 从该 skill 的目标 agent 列表里剔除了,普通重跑补不回来。显式点名 agent:
-
-```bash
-npx skills add csthink/dashmotion -a claude-code
-```
-
-继续用手动方式也行——只是重解压前先清空目录,避免删掉的文件残留:
-
-```bash
-rm -rf ~/.claude/skills/dashmotion && unzip dashmotion.zip -d ~/.claude/skills/
+rm -rf ~/.claude/skills/dashmotion && unzip dashmotion.zip -d ~/.claude/skills/   # 全局
+unzip dashmotion.zip -d ./.claude/skills/                                         # 或项目级
 ```
 
 ## 动画原理

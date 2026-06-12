@@ -56,39 +56,19 @@ Claude returns a single `.html` file. Open it — it's already moving.
 
 ### Claude Code
 
-Via the [`skills`](https://github.com/vercel-labs/skills) CLI — installs from this repo and updates in place:
+Install with the [`skills`](https://github.com/vercel-labs/skills) CLI — **for Claude Code, pass `-a claude-code`**. One command installs, upgrades, or replaces a hand-unzipped copy: it writes a real folder to `~/.claude/skills/dashmotion` (which `/skills` reliably lists) and overwrites whatever is already there.
 
 ```bash
-npx skills add csthink/dashmotion          # install (auto-detects your agent)
-npx skills update                          # later, pull the latest
+npx skills add csthink/dashmotion -a claude-code   # install — re-run anytime to update
 ```
 
-Or download the zip from [Releases](../../releases) and unzip it yourself:
+> Why the flag: the bare `npx skills add csthink/dashmotion` *symlinks* the skill instead of copying it, and Claude Code's symlink handling is currently rough — the link may not get created, a symlinked skill doesn't appear in `/skills` ([claude-code#14836](https://github.com/anthropics/claude-code/issues/14836)), and `npx skills update` won't refresh it. `-a claude-code` sidesteps all of that with a plain copy. Other agents (Cursor, Codex, …) read `~/.agents/skills/` directly and work fine with the bare command.
+
+Prefer the zip? Equally reliable, just manual — clear the folder first when upgrading so old files don't linger:
 
 ```bash
-unzip dashmotion.zip -d ~/.claude/skills/      # global
-unzip dashmotion.zip -d ./.claude/skills/      # or project-local
-```
-
-### Already installed by unzipping? Migrate cleanly
-
-`npx skills add` installs into `~/.claude/skills/dashmotion` — but it **won't overwrite a folder you unzipped there yourself**. It silently skips it and prints "Done", leaving Claude Code on the old version. So if you installed an earlier version by hand, remove it first:
-
-```bash
-rm -rf ~/.claude/skills/dashmotion        # drop the old manual copy
-npx skills add csthink/dashmotion          # now it installs the latest
-```
-
-Still not showing up in a new session? An earlier failed run can drop Claude Code from the skill's agent list, and a plain re-add won't put it back. Name the agent explicitly:
-
-```bash
-npx skills add csthink/dashmotion -a claude-code
-```
-
-Staying with manual installs is fine too — just clear the folder before re-unzipping, so removed files don't linger:
-
-```bash
-rm -rf ~/.claude/skills/dashmotion && unzip dashmotion.zip -d ~/.claude/skills/
+rm -rf ~/.claude/skills/dashmotion && unzip dashmotion.zip -d ~/.claude/skills/   # global
+unzip dashmotion.zip -d ./.claude/skills/                                         # or project-local
 ```
 
 ## How the animation works
