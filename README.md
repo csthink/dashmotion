@@ -57,6 +57,30 @@ Claude returns a single `.html` file. Open it — it's already moving.
 - In a real project you don't have to spell everything out: point it at a design doc (*"use dashmotion to draw the architecture in `docs/design.md`"*) or just ask for a flowchart / architecture diagram of what you're building — both work.
 - Don't like the result? Say so in plain language — *"make the auth path stand out"*, *"put Redis next to Postgres"*, *"split the workers into a second diagram"* — and it refines from there.
 
+## Mermaid input
+
+Already have the diagram as Mermaid? Paste it — dashmotion converts `flowchart`/`graph` and `stateDiagram-v2` sources into the same animated diagrams:
+
+````
+Use dashmotion to animate this mermaid diagram:
+
+```mermaid
+flowchart TB
+    A[Receive ticket] --> B{Severity?}
+    B -->|P1| C[Page on-call]
+    B -->|P2| D[Create incident]
+    C --> E[Mitigate]
+    D --> E
+```
+````
+
+What to expect:
+
+- **Preserved exactly**: every node and label, every edge and edge label, subgraph containment, and edge kinds — `-->` animates, `-.->` becomes a dotted async edge, `==>` marks the main path and gets the traveling dot.
+- **Recomputed by design**: layout (always top-down — `LR` sources are re-laid out; structure is preserved, geometry is not) and colors (`classDef`/`style`/`linkStyle` are replaced by dashmotion's semantic palette).
+- Subgraphs that name system components (namespaces, VPCs, tiers) route to architecture mode with boundaries and request journeys; plain process subgraphs stay in flow mode.
+- Other mermaid types (sequence, class, ER, gantt) aren't supported — dashmotion says so instead of guessing a lossy conversion.
+
 ## Why not just a GIF?
 
 | | GIF | Dashmotion (SVG/CSS) |
@@ -95,7 +119,8 @@ dashmotion/                               # repo root
 │   ├── SKILL.md                          # Mode routing + animation contracts + shared tokens
 │   ├── references/
 │   │   ├── flow-mode.md                  # Flowchart layout arithmetic
-│   │   └── architecture-mode.md          # Semantic palette, boundaries, legend, request journeys
+│   │   ├── architecture-mode.md          # Semantic palette, boundaries, legend, request journeys
+│   │   └── mermaid-input.md              # Mermaid → dashmotion conversion rules + fidelity contract
 │   └── resources/
 │       ├── template-flow.html            # Working flow example
 │       └── template-architecture.html    # Working architecture example (AWS, animated request)

@@ -1,5 +1,5 @@
 {
-  "description": "10 realistic prompts for measuring dashmotion structural failure rate (5 flow + 5 architecture). Complexity spans ~8-16 nodes; includes loops, multi-way branches, parallel rails, message bus, nested and sibling boundaries, async edges.",
+  "description": "Prompts for measuring dashmotion structural failure rate. f1-f5 flow + a1-a5 architecture (natural language, ~8-16 nodes; loops, multi-way branches, parallel rails, message bus, nested and sibling boundaries, async edges). m1-m6 mermaid input (v2.2 feature): TB branches+loop, LR nested subgraphs, stateDiagram-v2, edge kinds, adversarial labels, ignored style directives — fidelity measured with check_fidelity.py against the embedded source.",
   "prompts": [
     {
       "id": "f1-cicd",
@@ -50,6 +50,42 @@
       "id": "a5-hybrid",
       "mode": "architecture",
       "prompt": "Use dashmotion to draw our hybrid on-prem + cloud architecture: the on-premises datacenter contains Active Directory, a legacy ERP system and a file server; a site-to-site VPN connects it to AWS; inside AWS a private subnet holds DMS replicating the ERP database to RDS, plus two app servers behind an internal ALB; IAM Identity Center federates with the on-prem AD. Animate the ERP data sync journey from on-prem through the VPN and DMS into RDS, and a user auth flow from AD to IAM Identity Center."
+    },
+    {
+      "id": "m1-flow-tb",
+      "mode": "flow",
+      "input": "mermaid",
+      "prompt": "Use dashmotion to animate this mermaid diagram:\n\n```mermaid\nflowchart TB\n    A[Receive ticket] --> B{Severity?}\n    B -->|P1| C[Page on-call]\n    B -->|P2| D[Create incident]\n    B -->|P3| E[Queue for triage]\n    C --> F[Mitigate]\n    D --> F\n    E --> G[Weekly review]\n    F --> H{Resolved?}\n    H -->|yes| I[Postmortem]\n    H -->|no| F\n    I --> J[Close ticket]\n    G --> J\n```"
+    },
+    {
+      "id": "m2-arch-lr",
+      "mode": "architecture",
+      "input": "mermaid",
+      "prompt": "Use dashmotion to animate this mermaid diagram:\n\n```mermaid\nflowchart LR\n    U[User] --> CDN\n    subgraph EDGE[\"Edge\"]\n        CDN[CloudFront CDN]\n    end\n    subgraph VPC[\"AWS VPC\"]\n        subgraph PUB[\"Public subnet\"]\n            ALB[Application Load Balancer]\n        end\n        subgraph PRIV[\"Private subnet\"]\n            API[API service]\n            WORK[Worker]\n        end\n        DB[(PostgreSQL)]\n        Q[SQS queue]\n    end\n    CDN --> ALB --> API\n    API --> DB\n    API -.-> Q\n    Q -.-> WORK\n    WORK --> DB\n```"
+    },
+    {
+      "id": "m3-state",
+      "mode": "flow",
+      "input": "mermaid",
+      "prompt": "Use dashmotion to animate this mermaid diagram:\n\n```mermaid\nstateDiagram-v2\n    [*] --> Draft\n    Draft --> Review : submit\n    Review --> Draft : changes requested\n    Review --> Approved : approve\n    Approved --> Published : publish\n    Published --> Archived : expire\n    Archived --> [*]\n    Review --> Review : add comment\n```"
+    },
+    {
+      "id": "m4-edges",
+      "mode": "flow",
+      "input": "mermaid",
+      "prompt": "Use dashmotion to animate this mermaid diagram:\n\n```mermaid\nflowchart TB\n    P[Producer] ==> V[Validator]\n    V --> T[Transformer]\n    T -.-> Q[Queue]\n    Q -.-> C[Consumer]\n    C --> S[(Store)]\n```"
+    },
+    {
+      "id": "m5-labels",
+      "mode": "flow",
+      "input": "mermaid",
+      "prompt": "Use dashmotion to animate this mermaid diagram:\n\n```mermaid\nflowchart TB\n    A[\"Validate input -- strict mode\"] --> B{\"是否合规?\"}\n    B -->|\"yes & clean\"| C[\"Write to 'main' branch\"]\n    B -->|no| D[\"Reject — notify <admin>\"]\n    D --> A\n```"
+    },
+    {
+      "id": "m6-styles",
+      "mode": "flow",
+      "input": "mermaid",
+      "prompt": "Use dashmotion to animate this mermaid diagram:\n\n```mermaid\nflowchart TB\n    classDef hot fill:#ff0000,stroke:#00ff00\n    A[Gateway]:::hot --> B[Service]\n    style B fill:#ffff00\n    linkStyle 0 stroke:#0000ff\n```"
     }
   ]
 }

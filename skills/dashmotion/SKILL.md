@@ -1,6 +1,7 @@
 ---
 name: dashmotion
-description: 'Create dark-themed, animated technical diagrams as self-contained HTML+SVG files — flowcharts whose connectors visibly flow, and architecture diagrams where requests travel as light dots through the system (Diagrid/Temporal landing-page style). Use this skill whenever the user asks for a flowchart, workflow, pipeline, process diagram, state machine, system architecture, infrastructure, cloud, microservices, or network topology diagram — and especially when they mention "animated", "flowing", "dynamic", "alive", "GIF-like", or want a diagram for a landing page, README, docs, or product demo. Prefer this over static diagram output whenever the diagram represents anything that moves: requests, events, data, jobs, messages, or control flow.'
+version: 2.2.0
+description: 'Create dark-themed, animated technical diagrams as self-contained HTML+SVG files — flowcharts whose connectors visibly flow, and architecture diagrams where requests travel as light dots through the system (Diagrid/Temporal landing-page style). Use this skill whenever the user asks for a flowchart, workflow, pipeline, process diagram, state machine, system architecture, infrastructure, cloud, microservices, or network topology diagram — and especially when they mention "animated", "flowing", "dynamic", "alive", "GIF-like", or want a diagram for a landing page, README, docs, or product demo. Also use it to convert Mermaid source (a mermaid code block or .mmd file) into an animated diagram — "animate this mermaid", "make this flowchart move". Prefer this over static diagram output whenever the diagram represents anything that moves: requests, events, data, jobs, messages, or control flow.'
 ---
 
 # Dashmotion
@@ -15,6 +16,8 @@ Create professional animated technical diagrams as single self-contained HTML fi
 | Components, services, infrastructure, containment, topology ("what the system is made of") | **Architecture** | `references/architecture-mode.md` + `resources/template-architecture.html` |
 
 Mixed request ("show our microservices AND how an order flows through them") → Architecture mode; the animated request path *is* the flow. Only produce two separate files if the process has branching logic that the topology can't express.
+
+**Mermaid input** — if the request contains Mermaid source (a ```mermaid block, a `.mmd` file, or pasted code), ALSO read `references/mermaid-input.md` before anything else. Supported: `flowchart`/`graph` and `stateDiagram-v2`; other diagram types are unsupported — say so and offer alternatives. The mode routing above still applies (mermaid is syntax, not semantics), and layout is always recomputed top-down regardless of the source's declared direction.
 
 **Read the mode reference file before writing any coordinates.** Each contains the layout arithmetic that prevents the common failures (overlaps, arrows through boxes, broken loops).
 
@@ -71,7 +74,7 @@ Mixed request ("show our microservices AND how an order flows through them") →
 
 ## Step 5 — Produce the file
 
-1. Parse the description into nodes (typed), edges (directed), groups/boundaries.
+1. Parse the description into nodes (typed), edges (directed), groups/boundaries — or take them from the Mermaid source per `references/mermaid-input.md`.
 2. Do the layout arithmetic from the mode reference explicitly before writing coordinates.
 3. Copy the mode's template; replace SVG content, title, header, legend, summary cards. Keep CSS, pause toggle, and reduced-motion script intact.
 4. Pick 3–6 dot paths, copy connector `d` values, stagger `begin`.
@@ -92,6 +95,7 @@ Hand-computed coordinates fail in predictable ways, and the connector layer fail
 3. **Animation loops** — for each animated class: `|stroke-dashoffset delta|` must be an exact multiple of the `stroke-dasharray` period sum (e.g. `5 5` → 10), **including connectors that override the dasharray inline** (an async `2 4` edge animated by a `-10` keyframe seams every cycle — give it its own keyframes). For each `animateMotion`, name the single connector whose `d` it traces — a dot path that spans two connectors sails straight through the component between them; split it into chained per-hop dots instead. Every `begin="X.end+…"` must reference an `id` that exists.
 4. **ViewBox bounds** — no negative coordinates anywhere; every rect's `x+width`/`y+height` and every path coordinate stays inside `0 0 W H`; H ≥ lowest element bottom + 20; the legend sits below the lowest boundary (architecture).
 5. **Connector & markup hygiene** — every connector `<path>` resolves to `fill="none"`; endpoints stop ~4px short of the target border and never reach inside a box; no `--` inside SVG comments (`<!-- A -- B -->` closes the comment early and leaks stray text into the document).
+6. **Mermaid fidelity (mermaid input only)** — recount against the source: node rects/pills == source node IDs (START/END pills added only for `[*]`); connector paths + `↻`-rendered loops == source edges after expanding chains and `&`; every node and edge label appears verbatim. Details in `references/mermaid-input.md`.
 
 Deliver the file only after a pass where nothing needed fixing.
 

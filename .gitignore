@@ -2,3 +2,5 @@
 *.zip
 node_modules/
 research/
+test/
+__pycache__/

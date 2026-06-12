@@ -57,6 +57,30 @@ Claude 会返回一个 `.html` 文件,打开即动。
 - 真实项目里不用把细节都写全:可以指向一份设计文稿(*"用 dashmotion 画 `docs/design.md` 里的架构"*),也可以直接让它画你正在做的东西的流程图 / 架构图——都支持。
 - 对结果不满意?用大白话说就行——*"把认证链路标出来"*、*"把 Redis 放到 Postgres 旁边"*、*"把两个 worker 拆成第二张图"*——它会据此微调。
 
+## Mermaid 输入
+
+手头已经有 Mermaid 图?直接粘过来——dashmotion 能把 `flowchart`/`graph` 和 `stateDiagram-v2` 源码转成同款动画图:
+
+````
+用 dashmotion 把这段 mermaid 变成动画:
+
+```mermaid
+flowchart TB
+    A[接到工单] --> B{严重级别?}
+    B -->|P1| C[呼叫值班]
+    B -->|P2| D[创建事故单]
+    C --> E[止损处理]
+    D --> E
+```
+````
+
+转换契约:
+
+- **原样保留**:每个节点与标签、每条边与边标签、subgraph 包含关系、边的种类——`-->` 流动,`-.->` 转为异步点线,`==>` 标记主路径并获得行进光点。
+- **按设计重算**:布局(一律自上而下重排——`LR` 源会被重新布局;保结构、不保几何)与配色(`classDef`/`style`/`linkStyle` 由 dashmotion 的语义配色接管)。
+- subgraph 表达系统组件(namespace、VPC、分层)时路由到 architecture 模式,带边界和请求旅程;普通流程分组留在 flow 模式。
+- 其他 mermaid 图类型(sequence、class、ER、gantt)不支持——dashmotion 会明说,不做有损的瞎猜转换。
+
 ## 为什么不直接用 GIF?
 
 | | GIF | Dashmotion (SVG/CSS) |
@@ -95,7 +119,8 @@ dashmotion/                               # 仓库根
 │   ├── SKILL.md                          # 模式路由 + 动画契约 + 共享设计令牌
 │   ├── references/
 │   │   ├── flow-mode.md                  # 流程图布局算术
-│   │   └── architecture-mode.md          # 语义配色、边界、图例、请求旅程
+│   │   ├── architecture-mode.md          # 语义配色、边界、图例、请求旅程
+│   │   └── mermaid-input.md              # Mermaid → dashmotion 转换规则 + fidelity 契约
 │   └── resources/
 │       ├── template-flow.html            # 可直接运行的流程图示例
 │       └── template-architecture.html    # 可直接运行的架构图示例(AWS + 动画请求)
