@@ -71,6 +71,21 @@ rm -rf ~/.claude/skills/dashmotion && unzip dashmotion.zip -d ~/.claude/skills/ 
 unzip dashmotion.zip -d ./.claude/skills/                                         # 或项目级
 ```
 
+### 卸载
+
+用 `skills` CLI 装的(会从所有装过的 agent 一并移除):
+
+```bash
+npx skills remove dashmotion        # 全局安装的话加 -g
+```
+
+手动解压装的——直接删目录:
+
+```bash
+rm -rf ~/.claude/skills/dashmotion      # 全局
+rm -rf ./.claude/skills/dashmotion      # 或项目级
+```
+
 ## 动画原理
 
 **流动的虚线** — 让 `stroke-dashoffset` 每次精确偏移一个虚线周期:

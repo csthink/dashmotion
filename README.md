@@ -71,6 +71,21 @@ rm -rf ~/.claude/skills/dashmotion && unzip dashmotion.zip -d ~/.claude/skills/ 
 unzip dashmotion.zip -d ./.claude/skills/                                         # or project-local
 ```
 
+### Uninstall
+
+Installed with the `skills` CLI (removes it from every agent it was added to):
+
+```bash
+npx skills remove dashmotion        # add -g if you installed it globally
+```
+
+Installed by unzipping — just delete the folder:
+
+```bash
+rm -rf ~/.claude/skills/dashmotion      # global
+rm -rf ./.claude/skills/dashmotion      # or project-local
+```
+
 ## How the animation works
 
 **Flowing dashes** — animate `stroke-dashoffset` by exactly one dash period:
