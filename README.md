@@ -72,11 +72,17 @@ unzip dashmotion.zip -d ./.claude/skills/      # or project-local
 
 ### Already installed by unzipping? Migrate cleanly
 
-`npx skills add` symlinks `~/.claude/skills/dashmotion` to its own store — but it **won't overwrite a folder you unzipped there yourself**. It silently skips that link and prints "Done", leaving Claude Code on the old version. So if you installed an earlier version by hand, remove it first:
+`npx skills add` installs into `~/.claude/skills/dashmotion` — but it **won't overwrite a folder you unzipped there yourself**. It silently skips it and prints "Done", leaving Claude Code on the old version. So if you installed an earlier version by hand, remove it first:
 
 ```bash
 rm -rf ~/.claude/skills/dashmotion        # drop the old manual copy
-npx skills add csthink/dashmotion          # now it links the latest
+npx skills add csthink/dashmotion          # now it installs the latest
+```
+
+Still not showing up in a new session? An earlier failed run can drop Claude Code from the skill's agent list, and a plain re-add won't put it back. Name the agent explicitly:
+
+```bash
+npx skills add csthink/dashmotion -a claude-code
 ```
 
 Staying with manual installs is fine too — just clear the folder before re-unzipping, so removed files don't linger:

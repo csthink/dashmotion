@@ -72,11 +72,17 @@ unzip dashmotion.zip -d ./.claude/skills/      # 或项目级安装
 
 ### 之前手动解压装过?干净迁移一下
 
-`npx skills add` 会把 `~/.claude/skills/dashmotion` 链接到它自己的存储——但**不会覆盖你手动解压在那里的目录**。它会静默跳过这个链接、照样打印 "Done",于是 Claude Code 一直停在旧版。所以如果你之前是手动装的,先删掉它:
+`npx skills add` 会安装到 `~/.claude/skills/dashmotion`——但**不会覆盖你手动解压在那里的目录**。它会静默跳过、照样打印 "Done",于是 Claude Code 一直停在旧版。所以如果你之前是手动装的,先删掉它:
 
 ```bash
 rm -rf ~/.claude/skills/dashmotion        # 删掉旧的手动安装
-npx skills add csthink/dashmotion          # 现在能正确链接到最新版
+npx skills add csthink/dashmotion          # 现在能装上最新版
+```
+
+新 session 里还是搜不到?之前失败过的运行可能把 Claude Code 从该 skill 的目标 agent 列表里剔除了,普通重跑补不回来。显式点名 agent:
+
+```bash
+npx skills add csthink/dashmotion -a claude-code
 ```
 
 继续用手动方式也行——只是重解压前先清空目录,避免删掉的文件残留:
