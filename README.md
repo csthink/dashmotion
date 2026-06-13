@@ -2,23 +2,24 @@
 
 English | [简体中文](README.zh-CN.md)
 
-**Diagrams that move.** A Claude AI skill that generates animated technical diagrams as self-contained HTML/SVG files — dashed connectors stream in the direction of execution, and light dots travel through the system like requests in flight. The style you see on modern infra landing pages (Diagrid, Temporal, Inngest), generated from a plain-English description.
-
-The name is the implementation: **`stroke-dash`** offset animation + **`animateMotion`** paths. That's the whole trick — no libraries, no GIF rendering, no design tools.
+**Diagrams that move.** A Claude AI skill that turns a plain-English description — or a Mermaid source — into an animated technical diagram: a self-contained HTML/SVG file where dashed connectors stream in the direction of execution and light dots travel through the system like requests in flight. The style you see on modern infra landing pages (Diagrid, Temporal, Inngest).
 
 | Flow mode | Architecture mode |
 |---|---|
 | ![flow demo](examples/images/flow-demo.gif) | ![architecture demo](examples/images/architecture-demo.gif) |
 
-## Two modes
+## What it does
 
-**Flow mode** — workflows, pipelines, state machines. *What happens, in what order.* Monochrome circuitry aesthetic: a dark canvas where execution visibly flows from START to END through branches and merges.
+Describe a workflow or a system — in plain English, or paste a Mermaid diagram — and Claude hands back a single `.html` file that's already moving. The name is the implementation: `stroke-dashoffset` offset animation + `animateMotion` paths — no libraries, no GIF rendering, no design tools.
 
-**Architecture mode** — systems, infrastructure, topology. *What the system is made of — and how requests move through it.* Semantic component colors (frontend/service/data/cloud/security), region and security-group boundaries, a legend, summary cards — plus the differentiator: animated request journeys. A cyan dot leaves the client, hops through the CDN and gateway, lands in a service, reaches the database, and a new request begins. Your architecture diagram explains *behavior*, not just structure.
+- **Inputs (today):** a natural-language description, or a Mermaid `flowchart` / `graph` / `stateDiagram-v2` source — the same animated result either way.
+- **Output styles (today):** **Flow** — workflows, pipelines and state machines, where execution visibly streams from START to END through branches and merges; and **Architecture** — systems and topology, with semantic component colors, region/security boundaries, a legend, and the differentiator: animated request journeys, a dot hopping client → gateway → service → database and back.
+- **Refine in plain language:** *"make the auth path stand out"*, *"put Redis next to Postgres"*, *"split the workers into a second diagram."*
+- **The output is dependency-free:** one HTML file — vector, loops forever, a few KB, opens in any browser.
 
-## Quick start
+## Install
 
-Install the skill, then ask Claude for a diagram. Needs a Claude plan that includes skills (Pro, Max, Team, or Enterprise).
+Needs a Claude plan that includes skills (Pro, Max, Team, or Enterprise).
 
 **Claude Code** — one command, installs or updates in place:
 
@@ -36,30 +37,39 @@ Prefer the zip on Claude Code? `rm -rf ~/.claude/skills/dashmotion && unzip dash
 
 **claude.ai** — download `dashmotion.zip` from [Releases](../../releases), then **Settings → Capabilities → Skills → + Add → upload → toggle on**.
 
-Then ask. These two prompts generated the demos at the top — paste either to reproduce it:
+**Update** — re-run the install; it overwrites in place (on claude.ai, delete the old skill and upload the new zip). **Uninstall:**
 
-**Flow mode** — the left demo above:
+```bash
+npx skills remove dashmotion            # installed via the skills CLI (add -g if global)
+rm -rf ~/.claude/skills/dashmotion      # installed by unzipping (use ./.claude/... for project-local)
+```
+
+## Quick start
+
+Then just ask. These two prompts generated the demos at the top — paste either to reproduce it:
+
+**Flow** — the left demo:
 
 ```
 Use dashmotion to visualize our CI/CD pipeline: a commit runs lint, unit tests and integration tests in parallel; all three merge into building a Docker image; then a security scan; then a deploy to staging; then a manual approval gate — approved deploys to production and posts a Slack notification, rejected notifies the author and ends.
 ```
 
-**Architecture mode** — the right demo above:
+**Architecture** — the right demo:
 
 ```
 Use dashmotion to draw our Kubernetes microservices platform and animate the main request path: an NGINX ingress in front; users, catalog, cart and payments services in the 'shop' namespace; a Kafka bus between the services and two async workers (email worker, analytics worker); PostgreSQL for orders and MongoDB for the catalog; Prometheus and Grafana in an observability namespace. Animate a checkout request from ingress through cart and payments to PostgreSQL, plus an async event from payments through Kafka to the email worker.
 ```
 
-Claude returns a single `.html` file. Open it — it's already moving.
-
 **A few things worth knowing:**
-- Each generation lays things out a little differently — yours won't be pixel-identical to the demo above, but it's the same diagram.
-- In a real project you don't have to spell everything out: point it at a design doc (*"use dashmotion to draw the architecture in `docs/design.md`"*) or just ask for a flowchart / architecture diagram of what you're building — both work.
-- Don't like the result? Say so in plain language — *"make the auth path stand out"*, *"put Redis next to Postgres"*, *"split the workers into a second diagram"* — and it refines from there.
+
+- Each generation lays things out a little differently — yours won't be pixel-identical to the demo, but it's the same diagram.
+- You don't have to spell everything out: point it at a design doc (*"use dashmotion to draw the architecture in `docs/design.md`"*) or just ask for a flowchart / architecture diagram of what you're building.
+- Already have the diagram as Mermaid? Paste it — see [Mermaid input](#mermaid-input) below.
+- Don't like the result? Say so in plain language and it refines from there.
 
 ## Mermaid input
 
-Already have the diagram as Mermaid? Paste it — dashmotion converts `flowchart`/`graph` and `stateDiagram-v2` sources into the same animated diagrams:
+Already have the diagram as Mermaid? Paste it — dashmotion turns a static `flowchart`/`graph` or `stateDiagram-v2` source into the same **moving** diagram, no redrawing. Topology and labels are kept exactly; only the layout and colors are recomputed.
 
 ````
 Use dashmotion to animate this mermaid diagram:
@@ -73,6 +83,10 @@ flowchart TB
     D --> E
 ```
 ````
+
+…becomes a moving flowchart — dashed connectors stream from `Receive ticket` through the `Severity?` decision, fan out, and merge into `Mitigate`, with a dot riding the path:
+
+![A Mermaid flowchart converted into an animated dashmotion diagram](examples/images/mermaid-demo.gif)
 
 What to expect:
 
@@ -91,71 +105,6 @@ What to expect:
 | Loop | frame-perfect work | free |
 | Convert to GIF later | — | one command (`timecut`) or screen-record |
 
-## How the animation works
-
-**Flowing dashes** — animate `stroke-dashoffset` by exactly one dash period:
-
-```css
-.flow { stroke-dasharray: 5 5; animation: dashmove 0.75s linear infinite; }
-@keyframes dashmove { to { stroke-dashoffset: -10; } }
-```
-
-**Traveling dots** — `<animateMotion>` reusing the connector's own path data. In architecture mode, dots chain via SMIL event timing (`begin="j1.end+0.3s"`) so one request visibly hops tier by tier:
-
-```svg
-<circle r="3.5" fill="#22d3ee">
-  <animateMotion id="j2" dur="0.7s" begin="j1.end+0.3s" fill="freeze"
-    path="M416 118 L464 118"/>
-</circle>
-```
-
-The skill encodes the layout arithmetic that makes generation reliable: branch-bar fan-out/fan-in, boundary nesting and padding rules, opaque masking under semi-transparent fills, legend placement, seamless-loop constraints, and z-ordering so dots vanish *into* the node they arrive at. Before delivering, it verifies the produced SVG with a bundled deterministic checker (`scripts/check_diagram.py`, pure-stdlib Python — used when `python3` is available, with a manual checklist as fallback) — overlapping boxes, connectors cutting through nodes, broken animation loops, out-of-viewBox coordinates — and fixes what it finds. The *output* stays dependency-free either way: one HTML file, no libraries, no build step.
-
-## Project layout
-
-```
-dashmotion/                               # repo root
-├── skills/dashmotion/                    # the skill — this is what installs
-│   ├── SKILL.md                          # Mode routing + animation contracts + shared tokens
-│   ├── references/
-│   │   ├── flow-mode.md                  # Flowchart layout arithmetic
-│   │   ├── architecture-mode.md          # Semantic palette, boundaries, legend, request journeys
-│   │   └── mermaid-input.md              # Mermaid → dashmotion conversion rules + fidelity contract
-│   ├── scripts/
-│   │   └── check_diagram.py              # Deterministic structural checker (stdlib-only; optional)
-│   └── resources/
-│       ├── template-flow.html            # Working flow example
-│       └── template-architecture.html    # Working architecture example (AWS, animated request)
-├── eval/                                 # structural-check harness + before/after evidence
-└── examples/                             # demo GIFs
-```
-
-`npx skills add` and the release zip ship only `skills/dashmotion/`; `eval/` and `examples/` stay in the repo. Both templates are complete working examples — open them in a browser right now.
-
-## Updating & uninstalling
-
-**Update** — re-run the install: `npx skills add csthink/dashmotion -a claude-code` (it overwrites in place). On claude.ai, delete the old skill and upload the new zip.
-
-**Uninstall:**
-
-```bash
-npx skills remove dashmotion            # installed via the skills CLI (add -g if global)
-rm -rf ~/.claude/skills/dashmotion      # installed by unzipping (use ./.claude/... for project-local)
-```
-
-## Exporting to GIF / MP4
-
-Screen-record the open file (macOS ⌘⇧5). Animation durations divide 3s evenly, so a 3-second capture loops seamlessly. For any diagram with traveling dots this is the reliable path — see the note below.
-
-Headless / scriptable:
-
-```bash
-npx timecut your-diagram.html --viewport=1200,900 --duration=3 --fps=30 --output=out.mp4
-ffmpeg -i out.mp4 out.gif
-```
-
-> **`timecut` + traveling dots:** the `<animateMotion>` dots run on SVG's SMIL timeline, which `timecut`'s virtual clock doesn't advance — a delayed-start dot stays parked at the SVG origin and leaves a stray mark in the top-left corner of every frame. `timecut` is fine for the dashed-connector flow; for the dots, screen-record in real time or drive a real-time headless screencast (e.g. Chrome DevTools `Page.startScreencast`) instead.
-
 ## Accessibility
 
 All CSS animation is gated behind `@media (prefers-reduced-motion: no-preference)`; SMIL dots are removed by script under reduced motion; every diagram ships a visible pause/play toggle and `role="img"` + `<title>`/`<desc>`.
@@ -164,6 +113,10 @@ All CSS animation is gated behind `@media (prefers-reduced-motion: no-preference
 
 **Can I install this alongside [architecture-diagram-generator](https://github.com/Cocoon-AI/architecture-diagram-generator)?**
 Yes — tested side by side. Animation intent ("make the request path move") routes to dashmotion; plain static architecture requests stay with Cocoon's skill. No file conflicts.
+
+## How it works, and more
+
+The animation technique, the deterministic layout engine, the repo layout, and exporting to GIF/MP4 are in **[docs/how-it-works.md](docs/how-it-works.md)**. Version history is in **[CHANGELOG.md](CHANGELOG.md)**.
 
 ## Credits
 
