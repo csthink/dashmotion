@@ -2,6 +2,8 @@
 
 For flowcharts, workflows, pipelines, state machines: directed top-down flow on a central spine.
 
+> The arithmetic below is implemented by `scripts/layout.py` (SKILL.md Step 5) — you author a semantic graph JSON and transcribe the geometry it returns, rather than computing these numbers by hand. Read this for the color/shape style layer, to author clean input, and as the recipe for the no-`python3` fallback.
+
 ## Color system (monochrome circuitry)
 
 | Element | Value |

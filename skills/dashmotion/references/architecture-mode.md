@@ -2,6 +2,8 @@
 
 For system/infrastructure/cloud/network diagrams: components, containment boundaries, and **animated request paths** — a dot in this mode is a request/message traveling through the system.
 
+> The arithmetic below is implemented by `scripts/layout.py` (SKILL.md Step 5) — you author a semantic graph JSON (typed components, `tier`, groups, journeys) and transcribe the geometry it returns, rather than computing these numbers by hand. Read this for the color/type style layer, to author clean input (see `layout-script.md` for tier/grouping rules), and as the recipe for the no-`python3` fallback.
+
 ## Semantic color palette
 
 Every component gets a type. Fills are semi-transparent so the grid glows through:
@@ -31,6 +33,7 @@ Paint order: grid → boundaries → connectors → dots → component pairs (ba
 
 - **Region / cloud boundary**: dashed amber, `stroke-dasharray="8 4"`, `rx="12"`, transparent fill, label top-left inside in 11px amber. Containment edges are STATIC — never animate a boundary border; only request paths flow.
 - **Security group / subnet**: dashed rose, `stroke-dasharray="4 4"`, `rx="8"`, label top-left inside in 10px rose.
+- **Which kind?** Top-level / logical containment — cloud regions, VPCs, cloud accounts, **Kubernetes namespaces**, availability zones, environments — is a *region* (amber `8 4`). Network / security subdivisions — subnets, security groups, private/internal zones — are *subnets* (rose `4 4`). A namespace/region/VPC is a region, not a subnet; whenever the system has one, at least one boundary is amber. (In the JSON: `"kind": "region"` vs `"kind": "subnet"`.)
 - 20px minimum padding between a boundary edge and anything inside it. Boundaries may nest (region ⊃ subnet) but max 2 levels at 1000px width.
 
 ## Connectors

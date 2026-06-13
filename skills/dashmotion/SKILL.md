@@ -19,7 +19,7 @@ Mixed request ("show our microservices AND how an order flows through them") →
 
 **Mermaid input** — if the request contains Mermaid source (a ```mermaid block, a `.mmd` file, or pasted code), ALSO read `references/mermaid-input.md` before anything else. Supported: `flowchart`/`graph` and `stateDiagram-v2`; other diagram types are unsupported — say so and offer alternatives. The mode routing above still applies (mermaid is syntax, not semantics), and layout is always recomputed top-down regardless of the source's declared direction.
 
-**Read the mode reference file before writing any coordinates.** Each contains the layout arithmetic that prevents the common failures (overlaps, arrows through boxes, broken loops).
+**Read the mode reference file before you start.** Its layout arithmetic is what `scripts/layout.py` implements (Step 5) — read it to author a clean semantic graph and to apply the color/shape/animation style layer to the script's geometry (and to hand-compute the fallback). It encodes what prevents the common failures: overlaps, arrows through boxes, broken loops.
 
 ## Step 2 — The two animation contracts (both modes)
 
@@ -74,11 +74,19 @@ Mixed request ("show our microservices AND how an order flows through them") →
 
 ## Step 5 — Produce the file
 
-1. Parse the description into nodes (typed), edges (directed), groups/boundaries — or take them from the Mermaid source per `references/mermaid-input.md`.
-2. Do the layout arithmetic from the mode reference explicitly before writing coordinates.
-3. Copy the mode's template; replace SVG content, title, header, legend, summary cards. Keep CSS, pause toggle, and reduced-motion script intact.
-4. Pick 3–6 dot paths, copy connector `d` values, stagger `begin`.
-5. Save as `<topic>-dashmotion.html`. Tell the user it opens directly in any browser.
+dashmotion ships a deterministic layout engine, `scripts/layout.py` (pure stdlib). It does the coordinate arithmetic the mode references describe — row packing, branch gaps, boundary padding, orthogonal rail/lane routing — so you do **not** hand-compute coordinates (the slow part). You decide the *semantics*; the script computes the *geometry*. Full contract in `references/layout-script.md`.
+
+**Script path — use it whenever `python3` is available:**
+
+1. Parse the request — or the Mermaid source per `references/mermaid-input.md` — into the semantic graph JSON of `references/layout-script.md`: nodes (`type`/`shape`, `tier` for architecture, `group`), edges (`kind`), groups, journeys, any `legendExtra`. **This is your judgement layer** — types, tiers, grouping, which journeys matter, emphasis, classDef retention.
+2. Write it to a temp `graph.json` and run `python3 <this-skill-directory>/scripts/layout.py graph.json`. It prints geometry JSON: viewBox `width`/`height`, each node's `x/y/w/h` + wrapped `labelLines`, each edge's path `d`, group boxes, journey hops each carrying the connector `d` to animate along.
+3. **Transcribe the geometry verbatim into the mode template.** Copy every `x/y/w/h` and every path `d` exactly as printed — do NOT recompute, round, or hand-check a single coordinate; that arithmetic is the cost the script exists to remove, and Step 6 is the authority on correctness. Apply only the mode reference's *style* layer to the geometry: node fills/strokes by type, the opaque-base + styled-rect masking pair (architecture), connector colors and the `flow`/`flow-async`/`flow-auth` classes by edge `kind`, dot colors per journey. Keep the template's CSS, pause toggle, and reduced-motion script intact.
+4. Fill the human-facing copy the script stubs — title, subtitle, summary cards (architecture), legend wording — and stagger journey dot `begin` so each request visibly hops tier by tier. Edges flagged `"loop": true` render as the `↻ label` annotation, not a path.
+5. Save as `<topic>-dashmotion.html`. (`layout.py graph.json --emit-svg ref.html` renders the geometry to a complete reference diagram to diff against — never the delivered file.)
+
+**Hand-computed fallback — only when `python3` is unavailable:** do the layout arithmetic from the mode reference explicitly before writing coordinates, copy the template, replace SVG content / title / header / legend / summary cards (keep CSS + pause toggle + reduced-motion script), pick 3–6 dot paths copying connector `d` values and staggering `begin`. This is the pre-2.2 path.
+
+Tell the user the file opens directly in any browser.
 
 ### GIF/MP4 export (only if asked)
 
@@ -88,7 +96,7 @@ A 3s capture loops seamlessly when all durations divide 3s — prefer 0.75s / 1.
 
 ## Step 6 — Structural self-check (before delivering)
 
-Hand-computed coordinates fail in predictable ways, and the connector layer fails far more often than the text layer. The file is not done when it's written — it's done when it passes this check.
+Hand-computed — or hand-transcribed — coordinates fail in predictable ways, and the connector layer fails far more often than the text layer. The file is not done when it's written — it's done when it passes this check.
 
 **Mechanized path (use it whenever `python3` is available):** run the bundled checker against the file you just wrote —
 
@@ -96,7 +104,15 @@ Hand-computed coordinates fail in predictable ways, and the connector layer fail
 python3 <this-skill-directory>/scripts/check_diagram.py <your-file>.html
 ```
 
-It deterministically detects the failure classes below (overlaps, connectors through boxes, dash-loop seams, out-of-bounds, dots off their line, black-fill, endpoint pierce, dangling begin refs, malformed XML). Fix every reported violation and re-run until it prints `0 violations`. Do NOT hand-walk the arithmetic when the script is available, do NOT write your own ad-hoc verification script, and **never verify by opening a browser or taking screenshots** — the script is the authority; items it can't see (label collisions, exact boundary padding, legend placement, and checklist item 6's mermaid fidelity recount) you still check by reading the numbers.
+It deterministically detects the failure classes below (overlaps, connectors through boxes, dash-loop seams, out-of-bounds, dots off their line, black-fill, endpoint pierce, dangling begin refs, malformed XML). Fix every reported violation and re-run until it prints `0 violations`. Do NOT hand-walk the arithmetic when the script is available, do NOT write your own ad-hoc verification script, and **never verify by opening a browser or taking screenshots** — the script is the authority; items it can't see (label collisions, exact boundary padding, legend placement) you still check by reading the numbers.
+
+**If the input was Mermaid**, also mechanize the fidelity recount (checklist item 6): save the source to a temp `.mmd` and run —
+
+```bash
+python3 <this-skill-directory>/scripts/check_fidelity.py <source>.mmd <your-file>.html
+```
+
+Fix until it prints `PASS`. It verifies every source node/edge/group label appears **verbatim** and the connector count matches the source's edge count. So keep labels and legend entries exactly as the source wrote them — do not reword, merge two source strings into one, or add parentheses (a legend entry `v2 点线橙框` must stay `v2 点线橙框`, never `v2 治理骨架（点线橙框）`). This is the same low-recall trap as the structural check: prose "I kept it verbatim" misses real drift; the script doesn't.
 
 **Prose fallback (only if `python3` is unavailable):** verify each item below **with arithmetic on the actual numbers** (write the comparisons out), not by eyeballing the code. Fix every violation and re-check until the list is clean.
 
@@ -105,7 +121,7 @@ It deterministically detects the failure classes below (overlaps, connectors thr
 3. **Animation loops** — for each animated class: `|stroke-dashoffset delta|` must be an exact multiple of the `stroke-dasharray` period sum (e.g. `5 5` → 10), **including connectors that override the dasharray inline** (an async `2 4` edge animated by a `-10` keyframe seams every cycle — give it its own keyframes). For each `animateMotion`, name the single connector whose `d` it traces — a dot path that spans two connectors sails straight through the component between them; split it into chained per-hop dots instead. Every `begin="X.end+…"` must reference an `id` that exists.
 4. **ViewBox bounds** — no negative coordinates anywhere; every rect's `x+width`/`y+height` and every path coordinate stays inside `0 0 W H`; H ≥ lowest element bottom + 20; the legend sits below the lowest boundary (architecture).
 5. **Connector & markup hygiene** — every connector `<path>` resolves to `fill="none"`; endpoints stop ~4px short of the target border and never reach inside a box; no `--` inside SVG comments (`<!-- A -- B -->` closes the comment early and leaks stray text into the document).
-6. **Mermaid fidelity (mermaid input only)** — recount against the source: node rects/pills == source node IDs (START/END pills added only for `[*]`); connector paths + `↻`-rendered loops == source edges after expanding chains and `&`; every node and edge label appears verbatim. Details in `references/mermaid-input.md`.
+6. **Mermaid fidelity (mermaid input only)** — mechanized by `check_fidelity.py` above; run it and fix to `PASS`. It recounts against the source: node rects/pills == source node IDs (START/END pills added only for `[*]`); connector paths + `↻`-rendered loops == source edges after expanding chains and `&`; every node, edge, group, **and legend** label appears **verbatim** (legend entries merged from a 图例 subgraph included — keep their exact text). Without `python3`, recount by hand. Details in `references/mermaid-input.md`.
 
 Deliver the file only after a pass where nothing needed fixing.
 
