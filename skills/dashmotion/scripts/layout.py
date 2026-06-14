@@ -111,6 +111,12 @@ RAIL_IN = 24.0          # rail offset into the inter-layer gap
 
 EDGE_SHORT = 4.0        # connector stops this far short of the target border
 
+# journey dots
+DOT_SPEED = 150.0       # px/s travel along a hop
+DOT_DUR_MIN = 0.6
+DOT_DUR_MAX = 4.0       # cap: a dot on a long cross-diagram edge speeds up
+                        # instead of crawling (an 1740px hop was 11.6s -> 4s)
+
 
 # ----------------------------------------------------------------------------
 # text
@@ -853,7 +859,8 @@ def render(lo, geom):
                 begin = f"0s;{last_id}.end+0.6s"
             else:
                 begin = f"{prev_id}.end+0.3s"
-            dur = max(0.6, _poly_len(edge_pts[(a, b)]) / 150.0)
+            dur = min(DOT_DUR_MAX,
+                      max(DOT_DUR_MIN, _poly_len(edge_pts[(a, b)]) / DOT_SPEED))
             dot_svg.append(
                 f'<circle r="3.5" class="dot" fill="{color}">'
                 f'<animateMotion id="{mid}" dur="{dur:.1f}s" begin="{begin}" '

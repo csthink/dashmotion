@@ -28,6 +28,9 @@ Branch `feat/perf-render-path`. **Not released; pending local verification.**
   margin trunk with horizontal taps instead of N lanes marching into empty space.
   On the bianque graph this collapses 12 left lanes to 3 and shrinks the left-margin
   band ~64% (226px → 82px), with `check_diagram` still at 0 violations.
+- **Journey dots speed up on long edges.** Dot travel time is now capped (`DOT_DUR_MAX`
+  4s) so a dot riding a long cross-diagram edge no longer crawls — on bianque the
+  slowest dots drop from ~11.6s to ≤4s; short-hop dots are unchanged.
 
 ### Performance
 
