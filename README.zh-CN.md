@@ -2,6 +2,9 @@
 
 [English](README.md) | 简体中文
 
+[![version](https://img.shields.io/github/v/release/csthink/dashmotion?style=flat&label=version&labelColor=0b1226&color=10b981)](../../releases)
+[![license: MIT](https://img.shields.io/badge/license-MIT-64748b?style=flat&labelColor=0b1226)](LICENSE)
+
 **会流动的图。** 一个 Claude AI skill,把一段描述——纯文字**或** Mermaid 源码——变成带动画的技术图表:虚线沿执行方向流动、光点像真实请求一样在系统中穿行,输出为单个自包含的 HTML/SVG 文件。也就是现代基础设施产品官网(Diagrid、Temporal、Inngest)上那种动效。
 
 | Flow 模式 | Architecture 模式 |

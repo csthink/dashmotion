@@ -2,6 +2,9 @@
 
 English | [简体中文](README.zh-CN.md)
 
+[![version](https://img.shields.io/github/v/release/csthink/dashmotion?style=flat&label=version&labelColor=0b1226&color=10b981)](../../releases)
+[![license: MIT](https://img.shields.io/badge/license-MIT-64748b?style=flat&labelColor=0b1226)](LICENSE)
+
 **Diagrams that move.** A Claude AI skill that turns a plain-English description — or a Mermaid source — into an animated technical diagram: a self-contained HTML/SVG file where dashed connectors stream in the direction of execution and light dots travel through the system like requests in flight. The style you see on modern infra landing pages (Diagrid, Temporal, Inngest).
 
 | Flow mode | Architecture mode |
