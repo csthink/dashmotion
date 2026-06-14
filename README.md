@@ -48,6 +48,12 @@ npx skills update -g -y          # scope it to one skill: npx skills update dash
 
 Drop `-g` for a project-local install; re-running the install command works too. On **claude.ai** there's no in-place update — delete the old skill and upload the new `dashmotion.zip`.
 
+**Check which version you're on** — it lives in the skill's `SKILL.md`; compare it against the latest [release](../../releases) (`npx skills list` shows the path, not the version):
+
+```bash
+grep '^version:' ~/.claude/skills/dashmotion/SKILL.md     # project-local: ./.claude/skills/dashmotion/SKILL.md
+```
+
 <details>
 <summary>Hands-off: auto-update on every session (Claude Code)</summary>
 

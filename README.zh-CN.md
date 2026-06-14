@@ -48,6 +48,12 @@ npx skills update -g -y          # 只更新这一个:npx skills update dashmoti
 
 项目级安装去掉 `-g`;重跑安装命令也行。**claude.ai** 没有原地更新——删掉旧 skill,重新上传新的 `dashmotion.zip`。
 
+**查看当前装的是哪个版本** —— 版本号在 skill 的 `SKILL.md` 里,跟最新 [release](../../releases) 比一下就知道是否最新(`npx skills list` 只显示路径、不显示版本):
+
+```bash
+grep '^version:' ~/.claude/skills/dashmotion/SKILL.md     # 项目级:./.claude/skills/dashmotion/SKILL.md
+```
+
 <details>
 <summary>彻底省心:每次启动自动更新(Claude Code)</summary>
 
