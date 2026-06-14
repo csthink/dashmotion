@@ -21,7 +21,13 @@ Branch `feat/perf-render-path`. **Not released; pending local verification.**
   emitted file. `--emit-svg` is kept as an alias; the hand-transcribe path remains
   the documented fallback when `python3` is unavailable.
 - **Step 5** rewritten to the no-transcription flow; **Step 6** unchanged (still the
-  authority — runs on the rendered file).
+  authority — runs on the rendered file). The semantic `graph.json` is written to a
+  **temp path**, not the output folder, so the user's folder holds only the `.html`.
+- **Routing: shared per-source trunk lanes.** A node that fans out to several
+  off-column targets (e.g. `InvestigationGraph → 5 core modules`) now shares one
+  margin trunk with horizontal taps instead of N lanes marching into empty space.
+  On the bianque graph this collapses 12 left lanes to 3 and shrinks the left-margin
+  band ~64% (226px → 82px), with `check_diagram` still at 0 violations.
 
 ### Performance
 

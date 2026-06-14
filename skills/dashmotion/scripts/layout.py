@@ -292,6 +292,11 @@ class Layout:
         self.lanes_l = 0
         self.lane_base_r = 0.0
         self.lane_base_l = 0.0
+        # one trunk lane per (source, side): a node fanning out to several
+        # off-column targets shares a single margin trunk with horizontal taps,
+        # instead of N lanes marching outward into empty space.
+        self._src_lane_l = {}
+        self._src_lane_r = {}
 
     # -- sizing --
     def size_nodes(self):
@@ -487,14 +492,24 @@ class Layout:
                      (v.cx, v.y2 + EDGE_SHORT)]
             self._set_label_pos(e, u, v)
             return
-        # sideways / upward / blocked -> vertical lane outside all boxes
+        # sideways / upward / blocked -> vertical lane outside all boxes.
+        # Reuse one trunk per source on each side so a fan-out (IG -> 5 modules)
+        # collapses to a single bus with horizontal taps, not 5 marching lanes.
         right = u.cx >= CENTER
         if right:
-            self.lanes_r += 1
-            lane = self.lane_base_r + (self.lanes_r - 1) * LANE_STEP
+            if e.src in self._src_lane_r:
+                lane = self._src_lane_r[e.src]
+            else:
+                self.lanes_r += 1
+                lane = self.lane_base_r + (self.lanes_r - 1) * LANE_STEP
+                self._src_lane_r[e.src] = lane
         else:
-            self.lanes_l += 1
-            lane = self.lane_base_l - (self.lanes_l - 1) * LANE_STEP
+            if e.src in self._src_lane_l:
+                lane = self._src_lane_l[e.src]
+            else:
+                self.lanes_l += 1
+                lane = self.lane_base_l - (self.lanes_l - 1) * LANE_STEP
+                self._src_lane_l[e.src] = lane
         rail_a = uy + (RAIL_IN if not upward else -RAIL_IN)
         rail_b = vtop + (-RAIL_IN if not upward else RAIL_IN)
         e.pts = [(ux, uy), (ux, rail_a), (lane, rail_a),

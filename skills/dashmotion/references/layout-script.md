@@ -23,6 +23,10 @@ python3 <skill-dir>/scripts/layout.py graph.json                    # geometry J
 is a legacy alias for the same thing. The bare geometry-JSON form is for the
 hand-transcribe fallback when there is no Python, and for poking at the numbers.)
 
+Write the input `graph.json` to a **temp path** (`"$TMPDIR/…"` or `mktemp`), not
+the output folder: it is a throwaway intermediate, the rendered HTML does not
+depend on it, and the user's folder should end up holding only the `.html`.
+
 ## What the engine does for you (so you trust the output)
 
 You never compute a coordinate, a width, or a path `d`. The script owns all of it:
