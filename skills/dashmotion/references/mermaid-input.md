@@ -20,12 +20,12 @@ Mermaid layout direction (`TB`/`TD`/`BT`/`LR`/`RL`, including per-subgraph `dire
 
 | Mermaid | dashmotion |
 |---|---|
-| `A[text]`, `A(text)`, `A[[text]]`, `A{{text}}`, `A[/text/]`, `A[\text\]`, `A>text]` | Step (Flow) / typed component (Architecture) |
-| `A([text])`, `A((text))` | START/END pill **if** the node has in-degree 0 or out-degree 0; otherwise a plain step |
-| `A{text}` | Decision (dashed border, branch labels beside outgoing connectors) — Flow mode |
-| `A[(text)]` | Flow: plain step. Architecture: database-typed component (violet) |
+| `A[text]`, `A(text)`, `A[[text]]`, `A{{text}}`, `A[/text/]`, `A[\text\]`, `A>text]` | Flow: a step — **omit `shape`** / typed component (Architecture) |
+| `A([text])`, `A((text))` | Flow: **`shape: "pill"`** if in-degree 0 or out-degree 0; otherwise a step (**omit `shape`**) |
+| `A{text}` | Flow: **`shape: "decision"`** (dashed border, branch labels beside outgoing connectors) |
+| `A[(text)]` | Flow: a step (**omit `shape`**). Architecture: database-typed component (violet) |
 
-> In Flow mode `shape` defaults to `step`, so **omit `shape` for every "Step" row above** — write `shape` only for the pill and decision rows. (Architecture is unaffected; it uses `type`/`tier`, not `shape`.)
+> In Flow mode, **write `shape` only for pill and decision nodes. Do NOT write `"shape": "step"`** — omit `shape` on every step (it is the default; writing it just wastes output). (Architecture is unaffected; it uses `type`/`tier`, not `shape`.)
 
 **Never invent or drop nodes.** If a flowchart has no explicit start/end shape, do NOT add synthetic START/END pills — style the in-degree-0 node as the spine's entry (pill shape allowed, label verbatim from source).
 

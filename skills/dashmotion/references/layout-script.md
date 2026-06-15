@@ -86,7 +86,7 @@ Boundaries come out as clean rectangles (checker passes) **iff** you author tier
   "nodes": [
     {
       "id": "A", "label": "verbatim label", "sublabel": "arch 2nd line, optional",
-      "shape": "pill | step | decision",            // FLOW only; OPTIONAL, defaults to step — omit on steps; set pill/decision explicitly (not inferable from edges)
+      "shape": "pill | decision",                   // FLOW only. write ONLY for pill/decision; for a step, OMIT this key (step is the default; writing "shape":"step" is wasted output)
       "type":  "frontend|backend|database|cloud|security|bus|external", // ARCH only
       "tier": 0,                                     // ARCH row, 0 = top. all-or-nothing: OPTIONAL for ungrouped/single-group, REQUIRED for multi-group. omit in flow
       "group": "GROUP_ID",                           // boundary membership, optional
@@ -102,7 +102,7 @@ Boundaries come out as clean rectangles (checker passes) **iff** you author tier
 
 Authoring rules:
 
-- **Flow:** omit `tier`. `shape` is **optional and defaults to `step`** — omit it on ordinary step nodes. Set `shape` explicitly only for **pills** (entry/exit `[*]` nodes → `"pill"`) and **decisions** (branch nodes → `"decision"`); neither is inferable from edge structure, and a branch node with `shape` omitted renders as a plain step (yes/no semantics lost). Loops/self-loops are handled for you (see above).
+- **Flow:** omit `tier`. **Write `shape` only for pills and decisions — do NOT write `"shape": "step"`; leave `shape` off every step node** (`step` is what renders when `shape` is absent, so writing it changes nothing and only wastes output). Pills are entry/exit `[*]` nodes → `"pill"`; decisions are branch nodes → `"decision"`; neither is inferable from edge structure, and a branch node with `shape` omitted renders as a plain step (yes/no semantics lost). Loops/self-loops are handled for you (see above).
 - **Architecture:** `tier` is **all-or-nothing** — set it on *every* node or omit
   it on *every* node (a partial set is ignored and the whole graph is auto-layered
   by longest-path). Omitting is safe for **ungrouped or single-top-level-group**
