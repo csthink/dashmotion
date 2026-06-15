@@ -22,7 +22,7 @@ Implementation notes. For what dashmotion does and how to install it, see the [R
 
 ## The layout engine
 
-The layout arithmetic that makes generation reliable — branch-bar fan-out/fan-in, boundary nesting and padding, opaque masking under semi-transparent fills, legend placement, seamless-loop constraints, collision-free routing, and z-ordering so dots vanish *into* the node they arrive at — is computed by a bundled pure-stdlib engine, `scripts/layout.py`: the model describes the diagram as a semantic graph, the script returns the geometry, and the model transcribes it (a hand-computed fallback runs when `python3` is unavailable). Before delivering, two bundled checkers run and fix what they find — `scripts/check_diagram.py` for structure (overlapping boxes, connectors cutting through nodes, broken animation loops, out-of-viewBox coordinates) and, on Mermaid input, `scripts/check_fidelity.py` to confirm every label and edge survived verbatim. The *output* stays dependency-free either way: one HTML file, no libraries, no build step — the Python is generator-side only.
+The layout arithmetic that makes generation reliable — branch-bar fan-out/fan-in, boundary nesting and padding, opaque masking under semi-transparent fills, legend placement, seamless-loop constraints, collision-free routing, and z-ordering so dots vanish *into* the node they arrive at — is computed by a bundled pure-stdlib engine, `scripts/layout.py`: the model describes the diagram as a semantic graph, the script returns the geometry, and the model transcribes it (a hand-computed fallback runs when `python3` is unavailable). Before delivering, two bundled checkers run and fix what they find — `scripts/check_diagram.py` for structure (overlapping boxes, connectors cutting through nodes, broken animation loops, out-of-viewBox coordinates, a node inside a group boundary it doesn't belong to) and, on Mermaid input, `scripts/check_fidelity.py` to confirm every label and edge survived verbatim. The *output* stays dependency-free either way: one HTML file, no libraries, no build step — the Python is generator-side only.
 
 ## Project layout
 
@@ -37,7 +37,7 @@ dashmotion/                               # repo root
 │   │   └── layout-script.md              # layout.py input/output contract + transcription guide
 │   ├── scripts/                          # pure-stdlib, generator-side (output stays dependency-free)
 │   │   ├── layout.py                     # Deterministic layout engine — semantic graph → geometry
-│   │   ├── check_diagram.py              # Structural checker (C1–C8)
+│   │   ├── check_diagram.py              # Structural checker (C1–C9)
 │   │   └── check_fidelity.py             # Mermaid fidelity checker (labels/edges verbatim)
 │   └── resources/
 │       ├── template-flow.html            # Working flow example

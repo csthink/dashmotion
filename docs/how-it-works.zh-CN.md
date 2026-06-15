@@ -22,7 +22,7 @@
 
 ## 布局引擎
 
-让生成稳定可靠的布局算术——扇出/汇入的 branch-bar 模式、边界嵌套与留白、半透明填充下的不透明遮蔽、图例摆放、无缝循环周期约束、无碰撞布线、以及让光点"钻进"节点而非滑过的绘制顺序——由自带的纯标准库引擎 `scripts/layout.py` 计算:模型把图描述成语义图,脚本算出几何,模型照着转写(无 `python3` 时退回人工计算)。交付前两个自带校验脚本各跑一遍并修复——`scripts/check_diagram.py` 查结构(框重叠、连线穿框、动画循环断裂、坐标越界);Mermaid 输入时 `scripts/check_fidelity.py` 确认每个标签和边都逐字保留。无论哪条路,**产物本身始终零依赖**:一个 HTML 文件,无库、无构建——Python 只在生成端用。
+让生成稳定可靠的布局算术——扇出/汇入的 branch-bar 模式、边界嵌套与留白、半透明填充下的不透明遮蔽、图例摆放、无缝循环周期约束、无碰撞布线、以及让光点"钻进"节点而非滑过的绘制顺序——由自带的纯标准库引擎 `scripts/layout.py` 计算:模型把图描述成语义图,脚本算出几何,模型照着转写(无 `python3` 时退回人工计算)。交付前两个自带校验脚本各跑一遍并修复——`scripts/check_diagram.py` 查结构(框重叠、连线穿框、动画循环断裂、坐标越界、节点落在不属于它的分组框内);Mermaid 输入时 `scripts/check_fidelity.py` 确认每个标签和边都逐字保留。无论哪条路,**产物本身始终零依赖**:一个 HTML 文件,无库、无构建——Python 只在生成端用。
 
 ## 项目结构
 
@@ -37,7 +37,7 @@ dashmotion/                               # 仓库根
 │   │   └── layout-script.md              # layout.py 输入/输出契约 + 转写指南
 │   ├── scripts/                          # 纯标准库,只在生成端用(产物保持零依赖)
 │   │   ├── layout.py                     # 确定性布局引擎——语义图 → 几何
-│   │   ├── check_diagram.py              # 结构校验(C1–C8)
+│   │   ├── check_diagram.py              # 结构校验(C1–C9)
 │   │   └── check_fidelity.py             # Mermaid fidelity 校验(标签/边逐字)
 │   └── resources/
 │       ├── template-flow.html            # 可直接运行的流程图示例
