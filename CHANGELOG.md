@@ -30,8 +30,6 @@ a materially different kind of artifact? → minor; otherwise → patch.**
 
 ## 2.2.3 — Leaner model output: omittable `shape`/`tier` + group-membership check
 
-> _Draft — not yet tagged or released._
-
 A **patch**, not a feature: same inputs, same self-contained-HTML output contract.
 Two fields the model used to hand-write on every node are *derivable*, so the
 authoring docs now tell it to omit them — less model output (the project's dominant

@@ -1,6 +1,6 @@
 ---
 name: dashmotion
-version: 2.2.2
+version: 2.2.3
 description: 'Create dark-themed, animated technical diagrams as self-contained HTML+SVG files — flowcharts whose connectors visibly flow, and architecture diagrams where requests travel as light dots through the system (Diagrid/Temporal landing-page style). Use this skill whenever the user asks for a flowchart, workflow, pipeline, process diagram, state machine, system architecture, infrastructure, cloud, microservices, or network topology diagram — and especially when they mention "animated", "flowing", "dynamic", "alive", "GIF-like", or want a diagram for a landing page, README, docs, or product demo. Also use it to convert Mermaid source (a mermaid code block or .mmd file) into an animated diagram — "animate this mermaid", "make this flowchart move". Prefer this over static diagram output whenever the diagram represents anything that moves: requests, events, data, jobs, messages, or control flow.'
 ---
 
