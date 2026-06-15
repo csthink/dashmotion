@@ -37,10 +37,10 @@ You never compute a coordinate, a width, or a path `d`. The script owns all of i
     beside the source (the references' loop-sublabel rule), returned as an edge with
     `"loop": true` — **not** a drawn path.
   - *Architecture:* `tier` (`0` = top row, increasing downward) sets each row.
-    **Optional for ungrouped / single-top-level-group diagrams** — omit it on
-    *every* node and the engine layers by longest-path, exactly like flow.
-    **Multi-group diagrams must set `tier` on every node**: auto-layering is
-    group-blind and tears boundaries (Step 6's C9 flags it if you forget).
+    **For ungrouped / single-top-level-group diagrams, omit `tier` — do not write
+    it**; the engine layers by longest-path, exactly like flow. **Multi-group
+    diagrams must write `tier` on every node**: auto-layering is group-blind and
+    tears boundaries (Step 6's C9 flags it if you forget).
 - **Sizing & wrapping.** Width/height come from the label — **you never size a node.**
   Long labels wrap to two lines automatically; the output's `labelLines` is the
   wrapped result (render each entry as a `<tspan>`). Heights: flow step 44, pill 40,
@@ -88,7 +88,7 @@ Boundaries come out as clean rectangles (checker passes) **iff** you author tier
       "id": "A", "label": "verbatim label", "sublabel": "arch 2nd line, optional",
       "shape": "pill | decision",                   // FLOW only. write ONLY for pill/decision; for a step, OMIT this key (step is the default; writing "shape":"step" is wasted output)
       "type":  "frontend|backend|database|cloud|security|bus|external", // ARCH only
-      "tier": 0,                                     // ARCH row, 0 = top. all-or-nothing: OPTIONAL for ungrouped/single-group, REQUIRED for multi-group. omit in flow
+      "tier": 0,                                     // ARCH row, 0 = top. all-or-nothing: ungrouped/single-group → OMIT (don't write it); multi-group → write on every node. omit in flow
       "group": "GROUP_ID",                           // boundary membership, optional
       "semStroke": "#3b82f6", "semDash": "6 3"        // preserved classDef stroke variant, optional
     }
@@ -103,15 +103,17 @@ Boundaries come out as clean rectangles (checker passes) **iff** you author tier
 Authoring rules:
 
 - **Flow:** omit `tier`. **Write `shape` only for pills and decisions — do NOT write `"shape": "step"`; leave `shape` off every step node** (`step` is what renders when `shape` is absent, so writing it changes nothing and only wastes output). Pills are entry/exit `[*]` nodes → `"pill"`; decisions are branch nodes → `"decision"`; neither is inferable from edge structure, and a branch node with `shape` omitted renders as a plain step (yes/no semantics lost). Loops/self-loops are handled for you (see above).
-- **Architecture:** `tier` is **all-or-nothing** — set it on *every* node or omit
-  it on *every* node (a partial set is ignored and the whole graph is auto-layered
-  by longest-path). Omitting is safe for **ungrouped or single-top-level-group**
-  diagrams. **Set explicit `tier` when** (a) the diagram has **>1 top-level group**
-  — auto-layering is group-blind and tears boundaries (Step 6's C9 catches it), or
-  (b) a **cross-cutting sink** (observability / logging / monitoring with no
-  outgoing edges) must sit at a specific row — longest-path floats such nodes to
-  the top, and all-or-nothing means you can't pin just one. When you set tiers,
-  obey the clean-boundary contract.
+- **Architecture:** `tier` is **all-or-nothing** — write it on *every* node or on
+  *none* (a partial set is ignored and the whole graph is auto-layered by
+  longest-path). **For ungrouped or single-top-level-group diagrams, omit `tier`
+  entirely — do not write it** (the engine auto-layers; writing tiers it can
+  derive is wasted output). **Write `tier` on every node only when** (a) the
+  diagram has **>1 top-level group** — auto-layering is group-blind and tears
+  boundaries (Step 6's C9 catches it), or (b) a **cross-cutting sink**
+  (observability / logging / monitoring with no outgoing edges) must sit at a
+  specific row — longest-path floats such nodes to the top, and all-or-nothing
+  means you can't pin just one. When you set tiers, obey the clean-boundary
+  contract.
   Group `kind`: namespaces / VPCs / regions → `region` (amber `8 4`); subnets /
   inner zones → `subnet` (rose `4 4`). Details in `architecture-mode.md`.
 - **Edge kinds:** `sync` → animated solid; `async` (`-.->`) → `2 4` dotted, own
