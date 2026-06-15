@@ -28,6 +28,53 @@ not how the generator produces it.
 The test, in one line: **could a user ask for something they couldn't before, or get
 a materially different kind of artifact? → minor; otherwise → patch.**
 
+## 2.2.3 — Leaner model output: omittable `shape`/`tier` + group-membership check
+
+> _Draft — not yet tagged or released._
+
+A **patch**, not a feature: same inputs, same self-contained-HTML output contract.
+Two fields the model used to hand-write on every node are *derivable*, so the
+authoring docs now tell it to omit them — less model output (the project's dominant
+cost) for an identical diagram — and a new structural check closes a blind spot in
+the verifier. Nothing new to ask for.
+
+### Changed
+
+- **Flow `shape` is omitted on steps.** `step` is exactly what the engine renders
+  when `shape` is absent, so the authoring contract now says to write `shape` *only*
+  for pills and decisions, never `"shape": "step"`. Identical render, less output —
+  a live `m7-pr-cicd` generation trimmed ~170 B of node JSON (≈10% of the flow graph).
+- **Architecture `tier` is omitted for ungrouped / single-group diagrams.** The
+  engine already layers by longest-path when `tier` is absent; the docs now say to
+  omit `tier` there (all-or-nothing) and keep it explicit only for **multi-group**
+  diagrams, or when a cross-cutting sink must be pinned to a row. A live ungrouped-arch
+  generation trimmed ~77 B (≈12% of its node array).
+- The omission guidance is deliberately **imperative** ("do not write it; omit it"),
+  not permissive: a live test showed an "optional" framing left the model writing
+  every field anyway, realizing zero saving. The docs state the cost so the model acts.
+
+### Added
+
+- **`check_diagram` C9 — group membership.** A node sitting fully inside a group box
+  it is *not* a member of is now reported. This is the silent corruption class the
+  existing C1 cannot see — C1 exempts full containment (subnet-in-region is a
+  legitimate box-contains-node case), so a group-blind layout could swallow a foreign
+  node with a green check. To make membership judgeable from the HTML alone (no graph
+  JSON needed at generation-time Step 6), the renderer now embeds `data-grp` (a node's
+  resolved ancestor-group set) and `data-grp-id` (a box's group) on architecture
+  rects. The attributes are invisible and the file stays self-contained.
+
+### Verified
+
+- `run_checks` 11/11, `check_diagram` 0 violations (including C9), `check_fidelity`
+  PASS. Group-membership guard `check_c9.py`: authored fixtures 0 C9; tier-stripped
+  multi-group fixtures correctly FAIL C9 (the previously-silent corruptions).
+- Live medium-effort validation: flow (`m7`) omitted all 12 step shapes; an ungrouped
+  architecture omitted all tiers (engine auto-layered cleanly, sinks at the bottom);
+  bianque (35 nodes / 38 edges, multi-group) kept its tiers, generated in ~4 min
+  (inside the 8-min perf gate), 0 violations including C9 — no false positive on a
+  freshly generated multi-group diagram.
+
 ## 2.2.2 — Self-contained output; stricter label fidelity
 
 A **patch**, not a feature: same inputs, same output contract — the rendered file
