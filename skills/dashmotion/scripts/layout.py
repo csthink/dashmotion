@@ -314,11 +314,98 @@ def longest_path_layers(node_ids, fwd):
 
 
 # ----------------------------------------------------------------------------
+# input sanity
+# ----------------------------------------------------------------------------
+
+def validate_graph(graph):
+    """Pre-render sanity on the raw semantic graph. Returns a list of human-
+    readable errors (empty == OK), reporting every problem at once.
+
+    The high-value check is the group parent-chain CYCLE: without it a malformed
+    parent loop makes the layout engine spin forever (a silent hang that eats the
+    latency budget — worse than a crash). The rest turn would-be deep-in-the-
+    engine KeyErrors into one clear, up-front report. This is fail-closed by
+    design (a structural malformation can't be rendered faithfully) — distinct
+    from the fail-safe-to-render style-token guards. Deliberately NOT a general
+    JSON-schema validator: it checks only the invariants the engine assumes."""
+    nodes = graph.get("nodes")
+    if not nodes:
+        return ["graph has no 'nodes'"]
+    errors = []
+    node_ids = set()
+    for i, d in enumerate(nodes):
+        nid = d.get("id") if isinstance(d, dict) else None
+        if nid is None:
+            errors.append(f"node[{i}] missing required 'id'")
+        else:
+            node_ids.add(nid)
+    for i, d in enumerate(graph.get("edges", [])):
+        for end in ("from", "to"):
+            v = d.get(end) if isinstance(d, dict) else None
+            if v is None:
+                errors.append(f"edge[{i}] missing required '{end}'")
+            elif v not in node_ids:
+                errors.append(f"edge[{i}] '{end}' references unknown node {v!r}")
+    groups = graph.get("groups", [])
+    group_ids = set()
+    for i, d in enumerate(groups):
+        gid = d.get("id") if isinstance(d, dict) else None
+        if gid is None:
+            errors.append(f"group[{i}] missing required 'id'")
+        else:
+            group_ids.add(gid)
+    parent = {}
+    for d in groups:
+        if not isinstance(d, dict):
+            continue
+        gid, p = d.get("id"), d.get("parent")
+        if gid is None or p is None:
+            continue
+        if p not in group_ids:
+            errors.append(f"group {gid!r} parent references unknown group {p!r}")
+        else:
+            parent[gid] = p
+    # group parent-chain cycle detection (the silent-hang guard)
+    done = set()
+    for start in list(parent):
+        if start in done:
+            continue
+        path = []
+        cur = start
+        while cur in parent and cur not in done:
+            if cur in path:
+                cyc = path[path.index(cur):] + [cur]
+                errors.append("group parent cycle: " + " -> ".join(map(repr, cyc)))
+                break
+            path.append(cur)
+            cur = parent.get(cur)
+        done.update(path)
+    # journey endpoints must resolve to known nodes
+    for ji, j in enumerate(graph.get("journeys", [])):
+        if not isinstance(j, dict):
+            continue
+        for hi, hop in enumerate(j.get("hops", [])):
+            if not isinstance(hop, (list, tuple)) or len(hop) < 2:
+                errors.append(f"journey[{ji}] hop[{hi}] malformed: {hop!r}")
+                continue
+            for end in hop[:2]:
+                if end not in node_ids:
+                    errors.append(
+                        f"journey[{ji}] hop[{hi}] references unknown node {end!r}")
+    return errors
+
+
+# ----------------------------------------------------------------------------
 # layout
 # ----------------------------------------------------------------------------
 
 class Layout:
     def __init__(self, graph):
+        errors = validate_graph(graph)
+        if errors:
+            raise ValueError(
+                "dashmotion: cannot render — invalid graph:\n  - "
+                + "\n  - ".join(errors))
         self.mode = graph.get("mode", "flow")
         self.title = graph.get("title", "diagram")
         self.nodes = [Node(n) for n in graph["nodes"]]
@@ -994,11 +1081,16 @@ def render(lo, geom):
         H = H + 12
 
     svg = []
+    # ARIA: wire title/desc to the SVG and name the diagram type. Without the
+    # id + aria-labelledby/describedby link a screen reader sees role=img with no
+    # accessible name; aria-roledescription announces what kind of diagram it is.
+    roledesc = "flowchart" if mode == "flow" else "architecture diagram"
     svg.append(f'<svg id="flowsvg" width="100%" viewBox="0 0 {fmt(W)} {fmt(H)}" '
-               f'role="img">')
-    svg.append(f'<title>{esc(lo.title)} animated diagram</title>')
-    svg.append(f'<desc>Top-down {mode} diagram; dashed connectors animate in the '
-               f'direction of flow and dots ride the main paths.</desc>')
+               f'role="img" aria-roledescription="{roledesc}" '
+               f'aria-labelledby="flowsvg-title" aria-describedby="flowsvg-desc">')
+    svg.append(f'<title id="flowsvg-title">{esc(lo.title)} animated diagram</title>')
+    svg.append(f'<desc id="flowsvg-desc">Top-down {mode} diagram; dashed connectors '
+               f'animate in the direction of flow and dots ride the main paths.</desc>')
     svg.append(f'<defs>{MARKER}</defs>')
     svg.extend(bound_svg)
     svg.extend(conn)
@@ -1111,7 +1203,11 @@ def main():
         print(__doc__)
         sys.exit(1)
     graph = json.load(open(args[0], encoding="utf-8"))
-    lo = Layout(graph)
+    try:
+        lo = Layout(graph)
+    except ValueError as e:
+        sys.stderr.write(str(e) + "\n")
+        sys.exit(2)
     lo.run()
     geom = geometry(lo)
     if emit_svg:
