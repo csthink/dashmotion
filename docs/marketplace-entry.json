@@ -1,0 +1,19 @@
+{
+  "name": "dashmotion",
+  "description": "Animated technical diagrams from plain English or Mermaid — a Claude skill, self-contained HTML/SVG.",
+  "author": {
+    "name": "csthink",
+    "url": "https://github.com/csthink"
+  },
+  "category": "design",
+  "source": {
+    "source": "github",
+    "repo": "csthink/dashmotion",
+    "ref": "v2.2.4"
+  },
+  "strict": false,
+  "skills": [
+    "./skills/dashmotion"
+  ],
+  "homepage": "https://csthink.github.io/dashmotion/"
+}
