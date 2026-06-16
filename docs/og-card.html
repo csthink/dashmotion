@@ -27,7 +27,8 @@
   .sub b { color: #e2e8f0; font-weight: 500; }
   .install {
     display: inline-block; background: #060d20; border: 1px solid #1e293b;
-    border-radius: 9px; padding: 12px 16px; font-size: 1rem; color: #e2e8f0; margin-bottom: 18px;
+    border-radius: 9px; padding: 12px 15px; font-size: 0.92rem; color: #e2e8f0; margin-bottom: 18px;
+    white-space: nowrap;
   }
   .install .p { color: #475569; }
   .tags { font-size: 0.95rem; color: #64748b; }
@@ -42,7 +43,7 @@
     <div class="brand"><span class="dot"></span><span>dashmotion</span></div>
     <h1>Diagrams<br>that move.</h1>
     <p class="sub">A Claude skill that turns a description — or a Mermaid diagram — into a single <b>self-contained HTML file</b> where the connectors flow and requests travel as moving dots.</p>
-    <div class="install"><span class="p">$ </span>npx skills add csthink/dashmotion</div>
+    <div class="install"><span class="p">$ </span>npx skills add csthink/dashmotion -a claude-code -g</div>
     <div class="tags">pure SVG/CSS · no animation library · a few KB · MIT</div>
   </div>
 
@@ -69,7 +70,7 @@
       <!-- connectors -->
       <path d="M150 150 H210" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
       <path d="M340 150 H400" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
-      <path d="M275 184 V300 H210" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+      <path d="M275 184 V334 H215" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
       <path d="M150 334 H115 V184" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
 
       <!-- request in flight: comet trail + glowing dot on gateway->service -->
