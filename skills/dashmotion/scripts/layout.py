@@ -59,6 +59,7 @@ Known limitations (documented, NOT worked around by loosening the checker):
 """
 
 import json
+import re
 import sys
 
 # ----------------------------------------------------------------------------
@@ -158,7 +159,47 @@ def wrap(label, maxw):
 
 
 def esc(s):
-    return (s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+    # Attribute-safe: this output lands in both text content AND attribute values
+    # (data-grp, data-grp-id, title/desc). Quotes MUST be escaped or one " in a
+    # label breaks the attribute and corrupts the SVG (it won't even parse as XML).
+    # &quot;/&#39; render identically to "/' as text, so escaping them everywhere
+    # is lossless. check_fidelity html.unescape()s before comparing, so verbatim.
+    return (str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            .replace('"', "&quot;").replace("'", "&#39;"))
+
+
+# Style-token guards. The model supplies a few raw style strings — journey dot
+# color, retained classDef stroke/dash — that land in SVG *attributes*. Escaping
+# isn't enough: a malformed value would render as a broken (or injected)
+# attribute, so these validate-or-fall-back. An unrecognized token reverts to the
+# engine default and records a one-line notice (surfaced on stderr); they NEVER
+# drop a node or abort the render. fail-safe-to-render.
+_COLOR_RE = re.compile(
+    r'^(?:#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})'
+    r'|rgba?\(\s*[\d.]+%?\s*,\s*[\d.]+%?\s*,\s*[\d.]+%?\s*'
+    r'(?:,\s*[\d.]+%?\s*)?\))$')
+# stroke-dasharray: numbers separated by spaces and/or commas (e.g. "4 3", "2,4")
+_DASH_RE = re.compile(r'^[\d.]+(?:[\s,]+[\d.]+)*$')
+
+
+def safe_color(val, default, what, warnings):
+    if not val:
+        return default
+    s = str(val).strip()
+    if _COLOR_RE.match(s):
+        return s
+    warnings.append(f"{what}: ignored invalid color {val!r}; using {default}")
+    return default
+
+
+def safe_dash(val, what, warnings):
+    if not val:
+        return None
+    s = str(val).strip()
+    if _DASH_RE.match(s):
+        return s
+    warnings.append(f"{what}: ignored invalid stroke-dasharray {val!r}")
+    return None
 
 
 # ----------------------------------------------------------------------------
@@ -771,6 +812,7 @@ def _node_text_svg(n):
 
 def render(lo, geom):
     mode = lo.mode
+    warnings = []
     parts = []
     W = geom["width"]
     H = geom["height"]
@@ -846,7 +888,7 @@ def render(lo, geom):
     edge_d = {(e.src, e.dst): to_d(e.pts) for e in lo.edges if not e.is_loop}
     edge_pts = {(e.src, e.dst): e.pts for e in lo.edges if not e.is_loop}
     for ji, j in enumerate(lo.journeys):
-        color = j.get("color") or dot_default
+        color = safe_color(j.get("color"), dot_default, f"journey {ji}", warnings)
         hops = [h for h in j.get("hops", []) if (h[0], h[1]) in edge_d]
         if not hops:
             continue
@@ -892,8 +934,9 @@ def render(lo, geom):
                                                TYPE_STYLE["external"])
             if leg not in [u[2] for u in used_types]:
                 used_types.append((fill, stroke, leg))
-            st = n.sem_stroke or stroke
-            dash = f' stroke-dasharray="{n.sem_dash}"' if n.sem_dash else ""
+            st = safe_color(n.sem_stroke, stroke, f"node {n.id} semStroke", warnings)
+            _nd = safe_dash(n.sem_dash, f"node {n.id} semDash", warnings)
+            dash = f' stroke-dasharray="{_nd}"' if _nd else ""
             # group membership (resolved ancestor chain) for the C9 structural
             # check — lets check_diagram judge "node geometrically inside a group
             # box it isn't a member of" from the HTML alone (no graph JSON needed
@@ -933,10 +976,14 @@ def render(lo, geom):
             ly2 = ly + 22
             lx = MARGIN
             for ex in lo.legend_extra:
-                exd = f' stroke-dasharray="{ex["dash"]}"' if ex.get("dash") else ""
+                _xlbl = ex.get("label", "?")
+                _xd = safe_dash(ex.get("dash"), f"legendExtra {_xlbl}", warnings)
+                exd = f' stroke-dasharray="{_xd}"' if _xd else ""
+                _xs = safe_color(ex.get("stroke"), "#94a3b8",
+                                 f"legendExtra {_xlbl}", warnings)
                 legend_svg.append(
                     f'<rect x="{fmt(lx)}" y="{fmt(ly2)}" width="12" height="12" '
-                    f'rx="3" fill="none" stroke="{ex.get("stroke", "#94a3b8")}"{exd}/>')
+                    f'rx="3" fill="none" stroke="{_xs}"{exd}/>')
                 legend_svg.append(
                     f'<text x="{fmt(lx+18)}" y="{fmt(ly2+10)}" fill="#94a3b8" '
                     f'font-size="11">{esc(ex["label"])}</text>')
@@ -1025,6 +1072,16 @@ def render(lo, geom):
 {SCRIPT}
 </body>
 </html>"""
+    if warnings:
+        seen = []
+        for w in warnings:
+            if w not in seen:
+                seen.append(w)
+        sys.stderr.write(
+            "dashmotion: style fallback(s) applied — output rendered with "
+            "engine defaults, not the supplied value(s):\n")
+        for w in seen:
+            sys.stderr.write(f"  - {w}\n")
     return html
 
 
