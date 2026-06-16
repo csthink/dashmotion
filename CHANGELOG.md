@@ -28,6 +28,64 @@ not how the generator produces it.
 The test, in one line: **could a user ask for something they couldn't before, or get
 a materially different kind of artifact? → minor; otherwise → patch.**
 
+## 2.2.4 — Output safety: attribute-safe escaping, ARIA wiring, input sanity
+
+A **patch**, not a feature: same inputs, same self-contained-HTML output contract.
+Three generator-internal hardening items — the rendered file can no longer be
+corrupted or injected by a quote in a label, the SVG is now wired for screen
+readers, and a malformed graph fails fast with a clear message instead of
+hanging. Nothing new to ask for.
+
+### Fixed
+
+- **A `"` (or `'`) in any label / id no longer corrupts the output.** `esc()`
+  escaped only `& < >`, yet its result feeds attribute contexts (`data-grp`,
+  `data-grp-id`, `<title>`/`<desc>`); a single quote in a label broke out of the
+  attribute, so the SVG stopped parsing as XML and arbitrary markup could go
+  live. It now also escapes `"`→`&quot;` and `'`→`&#39;` — lossless: they render
+  identically as text and `check_fidelity` unescapes before comparing, so labels
+  stay verbatim. No attacker needed; pasting a Mermaid label with a quote
+  triggered it.
+- **A malformed group `parent` cycle no longer hangs the engine forever.** The
+  layout walked the group parent chain in three places with no cycle guard, so a
+  parent loop spun indefinitely — a silent hang that consumed the whole latency
+  budget, worse than a crash. Generation now validates up front and exits with a
+  named cycle (`group parent cycle: 'g1' -> 'g2' -> 'g1'`).
+
+### Added
+
+- **Style-token validation (fail-safe-to-render).** Model-supplied style strings
+  that land in SVG attributes — journey dot `color`, retained classDef
+  `semStroke`/`semDash`, and `legendExtra` stroke/dash — are validated (color must
+  be hex or `rgb[a]`, dash numeric). An unrecognized value falls back to the
+  engine default and prints a one-line notice on stderr; it never drops a node or
+  aborts the render.
+- **ARIA wiring on the output SVG.** `<title>`/`<desc>` now carry ids and the
+  `<svg>` links them via `aria-labelledby`/`aria-describedby`, plus
+  `aria-roledescription` (`flowchart` / `architecture diagram`). A screen reader
+  previously saw `role="img"` with no accessible name. Invisible to sighted users;
+  the file stays self-contained.
+- **Pre-render input sanity (fail-closed).** Before any layout work, the engine
+  reports every structural problem at once — missing `id`/`from`/`to`, edge or
+  journey endpoints referencing unknown nodes, a group `parent` referencing an
+  unknown group, and the parent-chain cycle above — then exits with a readable
+  list instead of a deep traceback. Deliberately not a general schema validator:
+  only the invariants the engine assumes.
+
+### Verified
+
+- `run_checks` 11/11, `check_diagram` 0 violations (including C9) on all 12
+  fixtures, `check_fidelity` PASS. New guards: `check_sa.py` (the old `esc()`
+  leaks a live `<script>` and fails XML parse; the new logic neutralizes it) and
+  `check_sb.py` (v2.2.3 hangs on a parent cycle; the new code exits fast, reports
+  all errors at once, zero false positives on clean fixtures).
+- End-to-end medium-effort run: 11/11 cases generated and verified; a fresh
+  bianque-class 30+ node diagram in ~3 min (inside the 8-min gate); quote-escaping
+  confirmed live on `m5-labels` (`<admin>`, `&`, `'main'` all correct, no
+  double-escape, fidelity PASS); ARIA present. Performance-neutral: model output
+  is unchanged (no prompt/schema change), render adds ~0.8 ms/figure (the
+  validation pass), output grows ~1.4% (the ARIA attributes).
+
 ## 2.2.3 — Leaner model output: omittable `shape`/`tier` + group-membership check
 
 A **patch**, not a feature: same inputs, same self-contained-HTML output contract.
